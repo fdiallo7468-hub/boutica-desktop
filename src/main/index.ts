@@ -423,7 +423,10 @@ function registerIpc() {
     if (!isTrustedSender(e)) return { ok: false, error: 'Appel non autorisé', network: false };
     if (!sessionToken) return { ok: true, session: null };
     const r = await cloudFetch('/api/auth/get-session', { method: 'GET' });
-    if (r.status === 0) return { ok: false, error: toBridgeError(r, null), network: true }; // ne pas déconnecter sur simple panne réseau
+    if (r.status === 0 || r.status >= 500) {
+      // Panne réseau ou serveur en cours de démarrage (Render 502/503) : ne pas déconnecter !
+      return { ok: false, error: toBridgeError(r, parseJson(r.bytes)), network: true };
+    }
     const data = parseJson(r.bytes);
     if (r.status === 401) {
       setToken(null);

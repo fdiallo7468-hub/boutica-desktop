@@ -65,8 +65,14 @@ export default function App() {
       return;
     }
 
-    // Aucune session : parcours d'accueil ou onboarding si premier démarrage
+    // Aucune session : vérifier si l'utilisateur était en cours d'inscription ou de connexion
     setStartupError(null);
+    const savedTarget = typeof window !== 'undefined' ? sessionStorage.getItem('boutica_target_view') : null;
+    if (savedTarget && ['register', 'login', 'onboarding', 'welcome'].includes(savedTarget)) {
+      setEntryView(savedTarget as any);
+      return;
+    }
+
     const hasSeenOnboarding = typeof window !== 'undefined' && localStorage.getItem('boutica_onboarding_completed') === 'true';
     setEntryView(hasSeenOnboarding ? 'welcome' : 'onboarding');
   };

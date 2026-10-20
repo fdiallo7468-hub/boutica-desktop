@@ -102,15 +102,6 @@ export const SettingsPage: React.FC = () => {
             Configuration du serveur, imprimante de caisse et raccourcis clavier
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleSaveSettings}
-          isLoading={isSaving}
-          leftIcon={<Save className="w-4 h-4" />}
-        >
-          Enregistrer l’adresse du serveur
-        </Button>
       </div>
 
       {/* Backend Cloud Server Connection */}
@@ -130,7 +121,7 @@ export const SettingsPage: React.FC = () => {
             label="URL de l'API Boutica Cloud"
             value={apiUrl}
             onChange={(e) => setApiUrl(e.target.value)}
-            helperText="Par défaut : https://boutica-cloud.onrender.com"
+            helperText="Par défaut : https://boutica-cloud.onrender.com (Toute modification déconnecte la session active)"
           />
 
           <div className="flex items-center gap-2 pt-1">
@@ -141,6 +132,15 @@ export const SettingsPage: React.FC = () => {
               isLoading={isTestingServer}
             >
               Tester la connectivité
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSaveSettings}
+              isLoading={isSaving}
+              leftIcon={<Save className="w-4 h-4" />}
+            >
+              Enregistrer la nouvelle adresse
             </Button>
           </div>
         </div>

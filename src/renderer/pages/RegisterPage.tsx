@@ -25,22 +25,85 @@ import { apiClient } from '../lib/api-client.ts';
 import { useUIStore } from '../store/uiStore.ts';
 import { toast } from 'sonner';
 
+interface RegisterDraft {
+  currentStep?: 1 | 2 | 3 | 4;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  businessName?: string;
+  businessType?: string;
+  businessPhone?: string;
+  businessAddress?: string;
+  businessCurrency?: string;
+}
+
+const DRAFT_KEY = 'boutica_register_draft';
+
+function loadDraft(): RegisterDraft {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDraft(partial: Partial<RegisterDraft>) {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = loadDraft();
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...partial }));
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearDraft() {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export const RegisterPage: React.FC = () => {
   const { setSession, setEntryView } = useUIStore();
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const draft = loadDraft();
 
-  // Step 1: Personal info
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [currentStep, setCurrentStepState] = useState<1 | 2 | 3 | 4>(draft.currentStep || 1);
+  const setCurrentStep = (step: 1 | 2 | 3 | 4) => {
+    setCurrentStepState(step);
+    saveDraft({ currentStep: step });
+  };
 
-  // Step 2: Business info
-  const [businessName, setBusinessName] = useState('');
-  const [businessType, setBusinessType] = useState('Matériaux de construction & Quincaillerie');
-  const [businessPhone, setBusinessPhone] = useState('');
-  const [businessAddress, setBusinessAddress] = useState('');
-  const [businessCurrency, setBusinessCurrency] = useState('XOF');
+  // Step 1: Personal info (restored from draft if page reloads)
+  const [firstName, setFirstNameState] = useState(draft.firstName || '');
+  const [lastName, setLastNameState] = useState(draft.lastName || '');
+  const [email, setEmailState] = useState(draft.email || '');
+  const [phone, setPhoneState] = useState(draft.phone || '');
+
+  const setFirstName = (v: string) => { setFirstNameState(v); saveDraft({ firstName: v }); };
+  const setLastName = (v: string) => { setLastNameState(v); saveDraft({ lastName: v }); };
+  const setEmail = (v: string) => { setEmailState(v); saveDraft({ email: v }); };
+  const setPhone = (v: string) => { setPhoneState(v); saveDraft({ phone: v }); };
+
+  // Step 2: Business info (restored from draft)
+  const [businessName, setBusinessNameState] = useState(draft.businessName || '');
+  const [businessType, setBusinessTypeState] = useState(
+    draft.businessType || 'Matériaux de construction & Quincaillerie'
+  );
+  const [businessPhone, setBusinessPhoneState] = useState(draft.businessPhone || '');
+  const [businessAddress, setBusinessAddressState] = useState(draft.businessAddress || '');
+  const [businessCurrency, setBusinessCurrencyState] = useState(draft.businessCurrency || 'XOF');
+
+  const setBusinessName = (v: string) => { setBusinessNameState(v); saveDraft({ businessName: v }); };
+  const setBusinessType = (v: string) => { setBusinessTypeState(v); saveDraft({ businessType: v }); };
+  const setBusinessPhone = (v: string) => { setBusinessPhoneState(v); saveDraft({ businessPhone: v }); };
+  const setBusinessAddress = (v: string) => { setBusinessAddressState(v); saveDraft({ businessAddress: v }); };
+  const setBusinessCurrency = (v: string) => { setBusinessCurrencyState(v); saveDraft({ businessCurrency: v }); };
 
   // Step 3: Security & password
   const [password, setPassword] = useState('');
@@ -105,7 +168,7 @@ export const RegisterPage: React.FC = () => {
   const handleBack = () => {
     setError(null);
     if (currentStep > 1) {
-      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+      setCurrentStep((currentStep - 1) as 1 | 2 | 3 | 4);
     }
   };
 
@@ -129,6 +192,7 @@ export const RegisterPage: React.FC = () => {
       // Nettoyer les données sensibles de la mémoire du composant
       setPassword('');
       setConfirmPassword('');
+      clearDraft();
 
       setSession(session);
       toast.success('Votre compte Boutica a été créé avec succès !');
@@ -547,7 +611,10 @@ export const RegisterPage: React.FC = () => {
                 type="button"
                 variant="ghost"
                 size="md"
-                onClick={() => setEntryView('welcome')}
+                onClick={() => {
+                  clearDraft();
+                  setEntryView('welcome');
+                }}
                 disabled={isSubmitting}
               >
                 Annuler

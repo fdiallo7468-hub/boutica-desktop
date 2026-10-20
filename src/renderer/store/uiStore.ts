@@ -80,7 +80,16 @@ export const useUIStore = create<UIState>((set) => ({
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
 
   entryView: 'splash',
-  setEntryView: (entryView) => set({ entryView }),
+  setEntryView: (entryView) => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('boutica_target_view', entryView);
+      } catch {
+        /* ignore */
+      }
+    }
+    set({ entryView });
+  },
 
   isCommandPaletteOpen: false,
   setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),

@@ -289,7 +289,7 @@ export class BouticaApiClient {
         }
         throw new ApiError(res.status, msg);
       }
-      let token = res.headers.get('set-auth-token') || resData?.token;
+      let token = (resData && typeof resData.token === 'string' ? resData.token : null) || res.headers.get('set-auth-token');
 
       if (!token) {
         // Enregistrement réussi, tenter de récupérer le jeton via sign-in automatique
@@ -299,7 +299,7 @@ export class BouticaApiClient {
           body: JSON.stringify({ email: data.email.trim().toLowerCase(), password: data.password }),
         });
         const loginData = await loginRes.json().catch(() => null);
-        token = loginRes.headers.get('set-auth-token') || loginData?.token;
+        token = (loginData && typeof loginData.token === 'string' ? loginData.token : null) || loginRes.headers.get('set-auth-token');
       }
 
       if (!token) {
@@ -343,15 +343,23 @@ export class BouticaApiClient {
     try {
       const res = await fetch(`${this.getWebBaseUrl()}/api/auth/get-session`, {
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(30000), // Délai suffisant pour le réveil du backend sur Render
       });
       if (res.status === 401) {
         this.clearStoredToken();
         return null;
       }
-      if (!res.ok) return null;
+      if (!res.ok) {
+        // Erreur serveur temporaire (502 Render, 503) : ne pas effacer le jeton local
+        throw new ApiError(res.status, `Serveur Boutica Cloud momentanément indisponible (${res.status}).`);
+      }
       const rawSession = await res.json().catch(() => null);
-      if (!rawSession?.user) {
+      if (!rawSession || (!rawSession.user && rawSession.session === null)) {
+        // Confirmation explicite d'absence de session active
+        this.clearStoredToken();
+        return null;
+      }
+      if (!rawSession.user) {
         this.clearStoredToken();
         return null;
       }
@@ -367,8 +375,10 @@ export class BouticaApiClient {
         },
         expiresAt: rawSession.session?.expiresAt || rawSession.expiresAt,
       };
-    } catch {
-      return null;
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      // Erreur réseau ou timeout : ne PAS supprimer le jeton et signaler l'indisponibilité
+      throw new ApiError(0, `Serveur Boutica Cloud injoignable (${err?.message || 'délai dépassé'}).`);
     }
   }
 
