@@ -1,0 +1,6 @@
+{
+  "name": "Boutica Desktop — Gestion Commerciale Fluo",
+  "description": "Application desktop professionnelle de gestion commerciale Boutica pour le commerce et matériaux de construction.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
