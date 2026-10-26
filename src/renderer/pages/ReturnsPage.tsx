@@ -62,6 +62,22 @@ export const ReturnsPage: React.FC = () => {
     loadData();
   }, []);
 
+  // Écoute des raccourcis globaux (Actualiser Ctrl+R et Créer Ctrl+N)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadData();
+    };
+    const handleCreateNew = () => {
+      setIsCreateOpen(true);
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    window.addEventListener('boutica:create-new', handleCreateNew);
+    return () => {
+      window.removeEventListener('boutica:refresh', handleRefresh);
+      window.removeEventListener('boutica:create-new', handleCreateNew);
+    };
+  }, []);
+
   // Lignes de la vente choisie (données serveur) : l'utilisateur choisit l'article retourné.
   useEffect(() => {
     setSaleItems([]);
@@ -146,16 +162,20 @@ export const ReturnsPage: React.FC = () => {
             onClick={loadData}
             isLoading={isLoading}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            title="Actualiser les retours (Ctrl+R)"
           >
-            Actualiser
+            <span>Actualiser</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-black/5 text-[#706C70]">Ctrl+R</kbd>
           </Button>
           <Button
             variant="primary"
             size="sm"
             onClick={() => setIsCreateOpen(true)}
             leftIcon={<Plus className="w-4 h-4" />}
+            title="Enregistrer un retour client (Ctrl+N)"
           >
-            Nouveau Retour
+            <span>Nouveau Retour</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-white/20 text-white font-bold">Ctrl+N</kbd>
           </Button>
         </div>
       </div>

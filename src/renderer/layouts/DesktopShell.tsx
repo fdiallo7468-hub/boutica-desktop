@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCheck,
+  Keyboard,
 } from 'lucide-react';
 import { useUIStore, AppPage } from '../store/uiStore.ts';
 import { BouticaLogo } from '../components/ui/BouticaLogo.tsx';
@@ -39,6 +40,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
     isSidebarCollapsed,
     toggleSidebar,
     setCommandPaletteOpen,
+    setShortcutsModalOpen,
     isOnline,
     setOnline,
     isBackendHealthy,
@@ -93,18 +95,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
   };
 
   const navItems: Array<{ page: AppPage; label: string; icon: React.ReactNode; badge?: string }> = [
-    { page: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { page: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard className="w-5 h-5" />, badge: 'Ctrl+1' },
     { page: 'pos', label: 'Caisse POS', icon: <ShoppingCart className="w-5 h-5" />, badge: 'F2' },
-    { page: 'products', label: 'Produits & Variantes', icon: <Package className="w-5 h-5" /> },
-    { page: 'inventory', label: 'Gestion des Stocks', icon: <Boxes className="w-5 h-5" /> },
-    { page: 'sales', label: 'Historique des Ventes', icon: <Receipt className="w-5 h-5" /> },
-    { page: 'purchases', label: 'Réception Achats', icon: <Truck className="w-5 h-5" /> },
-    { page: 'returns', label: 'Retours Marchandises', icon: <RotateCcw className="w-5 h-5" /> },
-    { page: 'customers', label: 'Clients', icon: <Users className="w-5 h-5" /> },
-    { page: 'suppliers', label: 'Fournisseurs', icon: <Building2 className="w-5 h-5" /> },
-    { page: 'expenses', label: 'Dépenses', icon: <Wallet className="w-5 h-5" /> },
-    { page: 'reports', label: 'Rapports & Exports', icon: <FileSpreadsheet className="w-5 h-5" /> },
-    { page: 'settings', label: 'Paramètres', icon: <Settings className="w-5 h-5" /> },
+    { page: 'products', label: 'Produits & Variantes', icon: <Package className="w-5 h-5" />, badge: 'Ctrl+2' },
+    { page: 'inventory', label: 'Gestion des Stocks', icon: <Boxes className="w-5 h-5" />, badge: 'Ctrl+3' },
+    { page: 'sales', label: 'Historique des Ventes', icon: <Receipt className="w-5 h-5" />, badge: 'Ctrl+4' },
+    { page: 'purchases', label: 'Réception Achats', icon: <Truck className="w-5 h-5" />, badge: 'Ctrl+5' },
+    { page: 'returns', label: 'Retours Marchandises', icon: <RotateCcw className="w-5 h-5" />, badge: 'Ctrl+9' },
+    { page: 'customers', label: 'Clients', icon: <Users className="w-5 h-5" />, badge: 'Ctrl+6' },
+    { page: 'suppliers', label: 'Fournisseurs', icon: <Building2 className="w-5 h-5" />, badge: 'Ctrl+8' },
+    { page: 'expenses', label: 'Dépenses', icon: <Wallet className="w-5 h-5" />, badge: 'Ctrl+7' },
+    { page: 'reports', label: 'Rapports & Exports', icon: <FileSpreadsheet className="w-5 h-5" />, badge: 'Ctrl+0' },
+    { page: 'settings', label: 'Paramètres', icon: <Settings className="w-5 h-5" />, badge: 'Ctrl+,' },
   ];
 
   return (
@@ -130,18 +132,32 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
           </span>
         </div>
 
-        {/* Center: Command Palette Trigger */}
-        <div className="no-drag">
+        {/* Center: Command Palette & Shortcuts Trigger */}
+        <div className="no-drag flex items-center gap-2">
           <button
             type="button"
             onClick={() => setCommandPaletteOpen(true)}
-            aria-label="Ouvrir la palette de commandes"
+            aria-label="Ouvrir la palette de commandes (Ctrl+K)"
             className="flex items-center gap-2 px-3 py-1 rounded-[10px] bg-[#F7F6F6] hover:bg-[#EAE8E9] border border-[#E5E2E3] text-xs text-[#706C70] transition-colors"
           >
             <Search className="w-3.5 h-3.5 text-[#9A050E]" />
             <span className="hidden md:inline">Rechercher ou actionner...</span>
             <kbd className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-white border border-[#E5E2E3] text-[#2B282C]">
               Ctrl+K
+            </kbd>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShortcutsModalOpen(true)}
+            aria-label="Guide des raccourcis clavier (F1)"
+            title="Guide des 15 raccourcis clavier (F1)"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] bg-[#F7F6F6] hover:bg-[#EAE8E9] border border-[#E5E2E3] text-xs text-[#706C70] transition-colors"
+          >
+            <Keyboard className="w-3.5 h-3.5 text-[#706C70]" />
+            <span className="hidden xl:inline">Raccourcis</span>
+            <kbd className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-white border border-[#E5E2E3] text-[#9A050E] font-bold">
+              F1
             </kbd>
           </button>
         </div>

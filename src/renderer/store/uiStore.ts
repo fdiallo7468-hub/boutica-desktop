@@ -38,6 +38,11 @@ interface UIState {
   isCommandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
 
+  // Shortcuts Help Modal
+  isShortcutsModalOpen: boolean;
+  setShortcutsModalOpen: (open: boolean) => void;
+  toggleShortcutsModal: () => void;
+
   // Authentication & session (strictly authentic from Boutica Cloud)
   session: UserSession | null;
   setSession: (session: UserSession | null) => void;
@@ -52,11 +57,13 @@ interface UIState {
   cart: CartItem[];
   posDiscount: number;
   posCustomerId: string | null;
+  posAttempt: { fingerprint: string; key: string } | null;
   addToCart: (variant: Variant, quantity?: number) => void;
   removeFromCart: (variantId: string) => void;
   updateCartQuantity: (variantId: string, quantity: number) => void;
   setPosDiscount: (discount: number) => void;
   setPosCustomerId: (id: string | null) => void;
+  setPosAttempt: (attempt: { fingerprint: string; key: string } | null) => void;
   clearCart: () => void;
 
   // Receipt Modal State
@@ -64,7 +71,9 @@ interface UIState {
     saleId: string;
     saleDate: string;
     customerName?: string;
-    items: Array<{ name: string; quantity: number; unitPrice: number; total: number }>;
+    paymentMethod?: string;
+    notes?: string;
+    items: Array<{ name: string; sku?: string; quantity: number; unitPrice: number; total: number }>;
     subtotal: number;
     discount: number;
     total: number;
@@ -94,6 +103,10 @@ export const useUIStore = create<UIState>((set) => ({
   isCommandPaletteOpen: false,
   setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
 
+  isShortcutsModalOpen: false,
+  setShortcutsModalOpen: (open) => set({ isShortcutsModalOpen: open }),
+  toggleShortcutsModal: () => set((state) => ({ isShortcutsModalOpen: !state.isShortcutsModalOpen })),
+
   session: null,
   setSession: (session) => {
     setDefaultCurrency(session?.user.businessCurrency);
@@ -111,6 +124,8 @@ export const useUIStore = create<UIState>((set) => ({
   cart: [],
   posDiscount: 0,
   posCustomerId: null,
+  posAttempt: null,
+  setPosAttempt: (posAttempt) => set({ posAttempt }),
   addToCart: (variant, quantity = 1) =>
     set((state) => {
       const existing = state.cart.find((item) => item.variant.id === variant.id);
@@ -140,7 +155,7 @@ export const useUIStore = create<UIState>((set) => ({
     })),
   setPosDiscount: (posDiscount) => set({ posDiscount: Math.max(0, posDiscount) }),
   setPosCustomerId: (posCustomerId) => set({ posCustomerId }),
-  clearCart: () => set({ cart: [], posDiscount: 0, posCustomerId: null }),
+  clearCart: () => set({ cart: [], posDiscount: 0, posCustomerId: null, posAttempt: null }),
 
   activeReceipt: null,
   openReceipt: (receipt) => set({ activeReceipt: receipt }),

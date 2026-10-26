@@ -35,6 +35,8 @@ export const PosSalePage: React.FC = () => {
     setPosDiscount,
     posCustomerId,
     setPosCustomerId,
+    posAttempt,
+    setPosAttempt,
     openReceipt,
   } = useUIStore();
 
@@ -44,17 +46,17 @@ export const PosSalePage: React.FC = () => {
   const [isLoadingVariants, setIsLoadingVariants] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  // Tentative de vente en cours : la clé d'idempotence est conservée tant que le résultat est incertain.
-  const attemptRef = useRef<{ fingerprint: string; key: string } | null>(null);
 
-  // Catalogue (variantes du serveur) et clients — aucune donnée locale de remplacement
-  const loadData = async () => {
+  // Catalogue et clients avec annulation propre au démontage
+  const loadData = async (isMounted = true) => {
     setIsLoadingVariants(true);
     setLoadError(null);
     const [variantsRes, customersRes] = await Promise.allSettled([
       apiClient.listAllVariants({ search: searchTerm || undefined, pageSize: 50 }),
       apiClient.listCustomers({ pageSize: 100 }),
     ]);
+
+    if (!isMounted) return;
 
     if (variantsRes.status === 'fulfilled') {
       setVariants(variantsRes.value.data || []);
@@ -73,8 +75,21 @@ export const PosSalePage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
+    let mounted = true;
+    loadData(mounted);
+    return () => {
+      mounted = false;
+    };
   }, [searchTerm]);
+
+  // Écoute de l'événement d'actualisation globale (Ctrl+R / Cmd+R)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadData(true);
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    return () => window.removeEventListener('boutica:refresh', handleRefresh);
+  }, []);
 
   // Totals calculations
   const cartSubtotal = useMemo(() => {
@@ -103,17 +118,18 @@ export const PosSalePage: React.FC = () => {
       items: cart.map((item) => ({ variantId: item.variant.id, quantity: item.quantity })),
     };
 
-    // Même panier => même clé (rejeu sans doublon si le résultat précédent était incertain).
+    // Même panier => même clé persistée dans le store (rejeu sans doublon même si changement de page).
     const fingerprint = JSON.stringify(payload);
-    if (!attemptRef.current || attemptRef.current.fingerprint !== fingerprint) {
-      attemptRef.current = { fingerprint, key: generateIdempotencyKey() };
+    let key = posAttempt?.fingerprint === fingerprint ? posAttempt.key : null;
+    if (!key) {
+      key = generateIdempotencyKey();
+      setPosAttempt({ fingerprint, key });
     }
-    const { key } = attemptRef.current;
 
     setIsSubmitting(true);
     try {
       const created = await apiClient.createSale(payload, key);
-      attemptRef.current = null; // vente confirmée par le serveur
+      setPosAttempt(null); // vente confirmée par le serveur
 
       // Le détail serveur fait foi pour le reçu (prix et montants calculés par Boutica Cloud).
       let sale: Sale & { items?: SaleItem[] } = created;
@@ -124,7 +140,7 @@ export const PosSalePage: React.FC = () => {
       }
 
       const selectedCustomer = customers.find((c) => c.id === posCustomerId);
-      const nameByVariant = new Map(cart.map((c) => [c.variant.id, c.variant.name]));
+      const variantById = new Map(cart.map((c) => [c.variant.id, c.variant]));
 
       if (sale.total === undefined || sale.total === null) {
         toast.success('Vente enregistrée par le serveur.');
@@ -132,8 +148,10 @@ export const PosSalePage: React.FC = () => {
       } else {
         const lines = (sale.items ?? []).map((it) => {
           const unitPrice = parseMoneyToNumber(it.unitPrice);
+          const v = variantById.get(it.variantId);
           return {
-            name: nameByVariant.get(it.variantId) ?? `Article ${it.variantId.slice(0, 8)}`,
+            name: v?.name ?? `Article ${it.variantId.slice(0, 8)}`,
+            sku: v?.sku,
             quantity: it.quantity,
             unitPrice,
             total: Math.round(unitPrice * it.quantity * 100) / 100,
@@ -155,10 +173,10 @@ export const PosSalePage: React.FC = () => {
       void loadData(); // les quantités en stock ont changé côté serveur
     } catch (err) {
       const uncertain = err instanceof ApiError && (err.isNetworkError || err.status >= 500);
-      if (!uncertain) attemptRef.current = null; // refus définitif : une nouvelle tentative = nouvelle clé
+      if (!uncertain) setPosAttempt(null); // refus définitif : une nouvelle tentative = nouvelle clé
       if (uncertain) {
         toast.error(
-          'Le résultat de la vente est incertain (réponse du serveur non reçue). Le panier est conservé : cliquez de nouveau sur « Valider » pour réessayer sans risque de doublon.',
+          'Le résultat de la vente est incertain (réponse du serveur non reçue). Le panier et la clé de transaction sont conservés : recliquez sur « Valider » pour réessayer sans risque de doublon.',
           { duration: 12000 }
         );
       } else {
@@ -181,7 +199,9 @@ export const PosSalePage: React.FC = () => {
           </div>
           <div className="w-full sm:w-72">
             <Input
-              placeholder="Rechercher par nom, SKU (ex: CIM-425)..."
+              data-search="true"
+              data-pos-search="true"
+              placeholder="Rechercher par nom, SKU (Ctrl+F)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               leftIcon={<Search className="w-4 h-4" />}

@@ -5,10 +5,12 @@ import { Button } from './Button.tsx';
 import { BouticaLogo } from './BouticaLogo.tsx';
 import { formatMoney } from '../../lib/money.ts';
 import { useUIStore } from '../../store/uiStore.ts';
+import { apiClient } from '../../lib/api-client.ts';
 import { toast } from 'sonner';
 
 export const ReceiptModal: React.FC = () => {
   const { activeReceipt, closeReceipt, session } = useUIStore();
+  const [isSavingPdf, setIsSavingPdf] = React.useState(false);
 
   if (!activeReceipt) return null;
 
@@ -37,26 +39,68 @@ export const ReceiptModal: React.FC = () => {
     if (!res.success) toast.error(res.error ?? 'Impression impossible');
   };
 
+  const handleDownloadPdf = async () => {
+    setIsSavingPdf(true);
+    try {
+      const res = await apiClient.saveReceiptPdf({
+        saleId: activeReceipt.saleId,
+        saleDate: activeReceipt.saleDate,
+        storeName: session?.user.businessName ?? 'Boutica',
+        storeAddress: 'Gestion commerciale Fluo',
+        customerName: activeReceipt.customerName,
+        paymentMethod: activeReceipt.paymentMethod,
+        items: activeReceipt.items,
+        subtotal: activeReceipt.subtotal,
+        discount: activeReceipt.discount,
+        total: activeReceipt.total,
+        notes: activeReceipt.notes,
+      });
+      if ('canceled' in res && res.canceled) {
+        return;
+      }
+      if ('filePath' in res && res.filePath) {
+        toast.success(
+          res.filePath !== 'impression-navigateur'
+            ? `Reçu PDF enregistré : ${res.filePath}`
+            : 'Reçu officiel PDF A4 prêt pour impression'
+        );
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Erreur lors de la génération du reçu PDF');
+    } finally {
+      setIsSavingPdf(false);
+    }
+  };
+
   return (
     <Modal
       isOpen={Boolean(activeReceipt)}
       onClose={closeReceipt}
       title="Ticket de caisse — Vente confirmée"
       description={`Référence vente : ${activeReceipt.saleId.slice(0, 8)}...`}
-      maxWidth="sm"
+      maxWidth="md"
       footer={
-        <div className="flex items-center justify-between w-full">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 w-full">
           <Button variant="ghost" size="sm" onClick={closeReceipt}>
             Fermer
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              isLoading={isSavingPdf}
+              leftIcon={<Download className="w-4 h-4" />}
+              onClick={handleDownloadPdf}
+            >
+              Reçu PDF A4 Officiel
+            </Button>
             <Button
               variant="primary"
               size="sm"
               leftIcon={<Printer className="w-4 h-4" />}
               onClick={handlePrint}
             >
-              Imprimer le ticket
+              Ticket thermique 80mm
             </Button>
           </div>
         </div>

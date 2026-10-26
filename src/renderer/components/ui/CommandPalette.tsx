@@ -28,11 +28,30 @@ interface CommandItem {
 }
 
 export const CommandPalette: React.FC = () => {
-  const { isCommandPaletteOpen, setCommandPaletteOpen, setCurrentPage } = useUIStore();
+  const { isCommandPaletteOpen, setCommandPaletteOpen, setCurrentPage, setShortcutsModalOpen } = useUIStore();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const commands: CommandItem[] = [
+  const commands: Array<
+    CommandItem | {
+      id: string;
+      title: string;
+      description: string;
+      action: () => void;
+      icon: React.ReactNode;
+      shortcut?: string;
+      category: 'Actions rapides' | 'Modules';
+    }
+  > = [
+    {
+      id: 'cmd-shortcuts-help',
+      title: 'Guide des raccourcis clavier (F1)',
+      description: 'Afficher la liste des 15 raccourcis clavier de Boutica',
+      action: () => setShortcutsModalOpen(true),
+      icon: <Settings className="w-4 h-4 text-[#9A050E]" />,
+      shortcut: 'F1',
+      category: 'Actions rapides',
+    },
     {
       id: 'cmd-pos',
       title: 'Nouvelle vente (Caisse POS)',
@@ -43,19 +62,12 @@ export const CommandPalette: React.FC = () => {
       category: 'Actions rapides',
     },
     {
-      id: 'cmd-inventory-adj',
-      title: 'Ajuster les stocks',
-      description: 'Définir une nouvelle quantité absolue en stock',
-      page: 'inventory',
-      icon: <Boxes className="w-4 h-4 text-[#D99016]" />,
-      category: 'Actions rapides',
-    },
-    {
-      id: 'cmd-purchase',
-      title: 'Réceptionner des marchandises',
-      description: 'Enregistrer un bon de commande fournisseur',
-      page: 'purchases',
-      icon: <Truck className="w-4 h-4 text-[#16804A]" />,
+      id: 'cmd-refresh',
+      title: 'Actualiser les données Cloud',
+      description: 'Recharger les données de l’écran sans fermer la session',
+      action: () => window.dispatchEvent(new CustomEvent('boutica:refresh')),
+      icon: <ArrowRight className="w-4 h-4 text-[#16804A]" />,
+      shortcut: 'Ctrl+R',
       category: 'Actions rapides',
     },
     {
@@ -64,6 +76,7 @@ export const CommandPalette: React.FC = () => {
       description: 'Indicateurs clés, chiffre d’affaires et marges',
       page: 'dashboard',
       icon: <LayoutDashboard className="w-4 h-4 text-[#3478C8]" />,
+      shortcut: 'Ctrl+1',
       category: 'Modules',
     },
     {
@@ -72,6 +85,16 @@ export const CommandPalette: React.FC = () => {
       description: 'Consulter et créer des produits et variantes de prix',
       page: 'products',
       icon: <Package className="w-4 h-4 text-[#706C70]" />,
+      shortcut: 'Ctrl+2',
+      category: 'Modules',
+    },
+    {
+      id: 'cmd-inventory-adj',
+      title: 'Gestion des Stocks',
+      description: 'Définir une nouvelle quantité absolue ou vérifier les alertes',
+      page: 'inventory',
+      icon: <Boxes className="w-4 h-4 text-[#D99016]" />,
+      shortcut: 'Ctrl+3',
       category: 'Modules',
     },
     {
@@ -80,14 +103,16 @@ export const CommandPalette: React.FC = () => {
       description: 'Consulter les ventes passées et réimprimer des reçus',
       page: 'sales',
       icon: <Receipt className="w-4 h-4 text-[#706C70]" />,
+      shortcut: 'Ctrl+4',
       category: 'Modules',
     },
     {
-      id: 'cmd-returns',
-      title: 'Retours de marchandises',
-      description: 'Gérer les retours clients et réintégrations de stock',
-      page: 'returns',
-      icon: <RotateCcw className="w-4 h-4 text-[#706C70]" />,
+      id: 'cmd-purchase',
+      title: 'Réceptionner des marchandises (Achats)',
+      description: 'Enregistrer un bon de commande fournisseur',
+      page: 'purchases',
+      icon: <Truck className="w-4 h-4 text-[#16804A]" />,
+      shortcut: 'Ctrl+5',
       category: 'Modules',
     },
     {
@@ -96,14 +121,7 @@ export const CommandPalette: React.FC = () => {
       description: 'Liste et création de clients particuliers et entreprises',
       page: 'customers',
       icon: <Users className="w-4 h-4 text-[#706C70]" />,
-      category: 'Modules',
-    },
-    {
-      id: 'cmd-suppliers',
-      title: 'Fournisseurs',
-      description: 'Annuaire des fournisseurs de matériaux',
-      page: 'suppliers',
-      icon: <Building2 className="w-4 h-4 text-[#706C70]" />,
+      shortcut: 'Ctrl+6',
       category: 'Modules',
     },
     {
@@ -112,6 +130,25 @@ export const CommandPalette: React.FC = () => {
       description: 'Suivi des frais généraux et charges',
       page: 'expenses',
       icon: <Wallet className="w-4 h-4 text-[#706C70]" />,
+      shortcut: 'Ctrl+7',
+      category: 'Modules',
+    },
+    {
+      id: 'cmd-suppliers',
+      title: 'Fournisseurs',
+      description: 'Annuaire des fournisseurs de matériaux',
+      page: 'suppliers',
+      icon: <Building2 className="w-4 h-4 text-[#706C70]" />,
+      shortcut: 'Ctrl+8',
+      category: 'Modules',
+    },
+    {
+      id: 'cmd-returns',
+      title: 'Retours de marchandises',
+      description: 'Gérer les retours clients et réintégrations de stock',
+      page: 'returns',
+      icon: <RotateCcw className="w-4 h-4 text-[#706C70]" />,
+      shortcut: 'Ctrl+9',
       category: 'Modules',
     },
     {
@@ -120,6 +157,7 @@ export const CommandPalette: React.FC = () => {
       description: 'Télécharger les bilans comptables officiels',
       page: 'reports',
       icon: <FileSpreadsheet className="w-4 h-4 text-[#16804A]" />,
+      shortcut: 'Ctrl+0',
       category: 'Modules',
     },
     {
@@ -165,8 +203,12 @@ export const CommandPalette: React.FC = () => {
     return () => window.removeEventListener('keydown', handleGlobalKey);
   }, [isCommandPaletteOpen, setCommandPaletteOpen, setCurrentPage]);
 
-  const handleExecute = (cmd: CommandItem) => {
-    setCurrentPage(cmd.page);
+  const handleExecute = (cmd: (typeof commands)[number]) => {
+    if ('action' in cmd && cmd.action) {
+      cmd.action();
+    } else if ('page' in cmd && cmd.page) {
+      setCurrentPage(cmd.page);
+    }
     setCommandPaletteOpen(false);
     setQuery('');
   };

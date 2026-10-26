@@ -49,6 +49,15 @@ export const SalesHistoryPage: React.FC = () => {
     loadSales();
   }, []);
 
+  // Écoute de l'événement d'actualisation globale (Ctrl+R / Cmd+R)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadSales();
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    return () => window.removeEventListener('boutica:refresh', handleRefresh);
+  }, []);
+
   const handleViewSale = async (sale: Sale) => {
     setIsLoadingDetails(true);
     try {
@@ -117,8 +126,10 @@ export const SalesHistoryPage: React.FC = () => {
             onClick={loadSales}
             isLoading={isLoading}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            title="Actualiser la liste (Ctrl+R)"
           >
-            Actualiser
+            <span>Actualiser</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-black/5 text-[#706C70]">Ctrl+R</kbd>
           </Button>
         </div>
       </div>

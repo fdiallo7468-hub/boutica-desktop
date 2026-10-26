@@ -193,6 +193,7 @@ export interface CreateProductInput {
   description?: string;
   category?: string;
   brand?: string;
+  imageUrl?: string;
 }
 
 export interface UpdateProductInput {
@@ -201,6 +202,7 @@ export interface UpdateProductInput {
   category?: string;
   brand?: string;
   status?: 'ACTIVE' | 'INACTIVE';
+  imageUrl?: string;
 }
 
 export interface AddVariantInput {

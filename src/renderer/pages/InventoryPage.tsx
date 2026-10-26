@@ -51,6 +51,15 @@ export const InventoryPage: React.FC = () => {
     loadStockData();
   }, [searchTerm]);
 
+  // Écoute de l'événement d'actualisation globale (Ctrl+R / Cmd+R)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadStockData();
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    return () => window.removeEventListener('boutica:refresh', handleRefresh);
+  }, []);
+
   const filteredVariants = variants.filter((v) => {
     const qty = v.quantity ?? 0;
     if (statusFilter === 'LOW') return qty > 0 && qty <= 5;
@@ -108,8 +117,10 @@ export const InventoryPage: React.FC = () => {
             onClick={loadStockData}
             isLoading={isLoading}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            title="Actualiser les stocks (Ctrl+R)"
           >
-            Actualiser
+            <span>Actualiser</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-black/5 text-[#706C70]">Ctrl+R</kbd>
           </Button>
         </div>
       </div>
@@ -118,7 +129,8 @@ export const InventoryPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="w-full sm:w-80">
           <Input
-            placeholder="Rechercher par article ou SKU..."
+            data-search="true"
+            placeholder="Rechercher par article ou SKU (Ctrl+F)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             leftIcon={<Search className="w-4 h-4" />}

@@ -8,7 +8,7 @@
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "dev:electron": "node scripts/dev.mjs",
     "dev:renderer": "vite --port=3000",
     "build:renderer": "vite build",

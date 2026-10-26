@@ -21,6 +21,9 @@ const api: BouticaDesktopAPI = {
     signIn: (email, password) => ipcRenderer.invoke('boutica:auth-sign-in', email, password),
     signUp: (data) => ipcRenderer.invoke('boutica:auth-sign-up', data),
     changePassword: (data) => ipcRenderer.invoke('boutica:auth-change-password', data),
+    forgetPassword: (email) => ipcRenderer.invoke('boutica:auth-forget-password', email),
+    resetPassword: (token, newPassword) => ipcRenderer.invoke('boutica:auth-reset-password', token, newPassword),
+    signInSocial: (provider) => ipcRenderer.invoke('boutica:auth-sign-in-social', provider),
     getSession: () => ipcRenderer.invoke('boutica:auth-get-session'),
     signOut: () => ipcRenderer.invoke('boutica:auth-sign-out'),
     onSessionExpired: (cb) => {
@@ -37,6 +40,8 @@ const api: BouticaDesktopAPI = {
 
   downloadReport: (type, params) => ipcRenderer.invoke('boutica:download-report', type, params),
   printReceipt: (html) => ipcRenderer.invoke('boutica:print-receipt', html),
+  saveReceiptPdf: (data) => ipcRenderer.invoke('boutica:save-receipt-pdf', data),
+  uploadProductImage: (data) => ipcRenderer.invoke('boutica:upload-product-image', data),
 };
 
 contextBridge.exposeInMainWorld('bouticaDesktop', api);

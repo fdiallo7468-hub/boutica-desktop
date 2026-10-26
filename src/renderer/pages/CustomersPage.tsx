@@ -54,6 +54,22 @@ export const CustomersPage: React.FC = () => {
     loadCustomers();
   }, []);
 
+  // Écoute des raccourcis globaux (Actualiser Ctrl+R et Créer Ctrl+N)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadCustomers();
+    };
+    const handleCreateNew = () => {
+      setIsCreateOpen(true);
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    window.addEventListener('boutica:create-new', handleCreateNew);
+    return () => {
+      window.removeEventListener('boutica:refresh', handleRefresh);
+      window.removeEventListener('boutica:create-new', handleCreateNew);
+    };
+  }, []);
+
   const handleSelectCustomer = async (cust: Customer) => {
     setSelectedCustomer(cust);
     setIsLoadingSales(true);
@@ -117,16 +133,20 @@ export const CustomersPage: React.FC = () => {
             onClick={loadCustomers}
             isLoading={isLoading}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            title="Actualiser la liste (Ctrl+R)"
           >
-            Actualiser
+            <span>Actualiser</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-black/5 text-[#706C70]">Ctrl+R</kbd>
           </Button>
           <Button
             variant="primary"
             size="sm"
             onClick={() => setIsCreateOpen(true)}
             leftIcon={<Plus className="w-4 h-4" />}
+            title="Ajouter un client (Ctrl+N)"
           >
-            Nouveau Client
+            <span>Nouveau Client</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-white/20 text-white font-bold">Ctrl+N</kbd>
           </Button>
         </div>
       </div>
@@ -134,7 +154,8 @@ export const CustomersPage: React.FC = () => {
       {/* Search Input */}
       <div className="w-full sm:w-80">
         <Input
-          placeholder="Rechercher par nom ou numéro..."
+          data-search="true"
+          placeholder="Rechercher par nom ou numéro (Ctrl+F)..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           leftIcon={<Search className="w-4 h-4" />}

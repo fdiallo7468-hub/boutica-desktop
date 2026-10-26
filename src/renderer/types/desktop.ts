@@ -38,6 +38,30 @@ export interface BridgeSession {
 
 export type ReportDownloadType = 'sales/excel' | 'inventory/excel' | 'sales/pdf' | 'inventory/pdf';
 
+export interface ReceiptPdfData {
+  saleId: string;
+  saleDate: string;
+  businessName?: string;
+  storeName?: string;
+  businessAddress?: string;
+  storeAddress?: string;
+  businessPhone?: string;
+  businessCurrency?: string;
+  customerName?: string;
+  paymentMethod?: string;
+  notes?: string;
+  items: Array<{
+    name: string;
+    sku?: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+  subtotal: number;
+  discount: number;
+  total: number;
+}
+
 export interface BouticaDesktopAPI {
   isElectron: true;
   platform: 'win32' | 'darwin' | 'linux';
@@ -63,6 +87,14 @@ export interface BouticaDesktopAPI {
       currentPassword: string;
       newPassword: string;
     }) => Promise<{ ok: true } | { ok: false; error: string }>;
+    forgetPassword: (email: string) => Promise<{ ok: boolean; message: string; error?: string }>;
+    resetPassword: (token: string, newPassword: string) => Promise<{ ok: boolean; error?: string }>;
+    signInSocial: (provider: 'google' | 'apple') => Promise<{
+      ok: boolean;
+      session?: BridgeSession;
+      error?: string;
+      notConfigured?: boolean;
+    }>;
     getSession: () => Promise<{ ok: true; session: BridgeSession | null } | { ok: false; error: string; network: boolean }>;
     signOut: () => Promise<{ serverConfirmed: boolean }>;
     onSessionExpired: (cb: () => void) => () => void;
@@ -79,6 +111,16 @@ export interface BouticaDesktopAPI {
   ) => Promise<{ success: boolean; filePath?: string; canceled?: boolean; error?: string }>;
 
   printReceipt: (htmlContent: string) => Promise<{ success: boolean; error?: string }>;
+
+  saveReceiptPdf: (data: ReceiptPdfData) => Promise<{ success: boolean; filePath?: string; canceled?: boolean; error?: string }>;
+
+  uploadProductImage: (fileData: { name: string; type: string; base64: string }) => Promise<{
+    success: boolean;
+    url?: string;
+    key?: string;
+    error?: string;
+    cloudUnsupported?: boolean;
+  }>;
 }
 
 declare global {

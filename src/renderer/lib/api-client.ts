@@ -3,7 +3,7 @@
  * Aucune donnée simulée ou fictive : toutes les requêtes sont adressées au véritable backend Boutica Cloud.
  */
 
-import type { ReportDownloadType } from '../types/desktop.ts';
+import type { ReportDownloadType, ReceiptPdfData } from '../types/desktop.ts';
 import type {
   PaginatedResponse,
   UserSession,
@@ -408,6 +408,69 @@ export class BouticaApiClient {
     }
   }
 
+  async forgetPassword(email: string): Promise<string> {
+    if (typeof window !== 'undefined' && window.bouticaDesktop) {
+      const res = await window.bouticaDesktop.auth.forgetPassword(email);
+      if (!res.ok) throw new ApiError(400, res.error || 'Impossible d’envoyer le lien de réinitialisation.');
+      return res.message;
+    }
+    const res = await fetch(`${this.getWebBaseUrl()}/api/auth/forget-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    });
+    const d = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new ApiError(res.status, d?.message || 'Impossible d’envoyer le lien de réinitialisation.');
+    }
+    return d?.message || 'Si cette adresse e-mail existe, un lien de réinitialisation vous a été envoyé.';
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    if (typeof window !== 'undefined' && window.bouticaDesktop) {
+      const res = await window.bouticaDesktop.auth.resetPassword(token, newPassword);
+      if (!res.ok) throw new ApiError(400, res.error || 'Échec de la réinitialisation du mot de passe.');
+      return;
+    }
+    const res = await fetch(`${this.getWebBaseUrl()}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token.trim(), newPassword }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => null);
+      throw new ApiError(res.status, d?.message || 'Jeton invalide ou expiré.');
+    }
+  }
+
+  async signInSocial(provider: 'google' | 'apple'): Promise<{ ok: boolean; session?: UserSession; notConfigured?: boolean; error?: string }> {
+    if (typeof window !== 'undefined' && window.bouticaDesktop) {
+      const res = await window.bouticaDesktop.auth.signInSocial(provider);
+      return res;
+    }
+    const res = await fetch(`${this.getWebBaseUrl()}/api/auth/sign-in/social`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, callbackURL: window.location.origin }),
+    });
+    const d = await res.json().catch(() => null);
+    if (res.status === 404 || /provider not found/i.test(d?.message || '')) {
+      return {
+        ok: false,
+        notConfigured: true,
+        error: `La connexion avec ${provider === 'google' ? 'Google' : 'Apple'} n'est pas configurée sur le serveur Boutica Cloud.`,
+      };
+    }
+    if (!res.ok) {
+      return { ok: false, error: d?.message || 'Erreur d’authentification sociale.' };
+    }
+    if (d?.url) {
+      window.location.href = d.url;
+      return { ok: true };
+    }
+    return { ok: false, error: 'Réponse inattendue du fournisseur OAuth.' };
+  }
+
   async signOut(): Promise<{ serverConfirmed: boolean }> {
     if (typeof window !== 'undefined' && window.bouticaDesktop) {
       return window.bouticaDesktop.auth.signOut();
@@ -608,6 +671,48 @@ export class BouticaApiClient {
     document.body.removeChild(a);
     URL.revokeObjectURL(downloadUrl);
     return { filePath: filename };
+  }
+
+  async saveReceiptPdf(data: ReceiptPdfData): Promise<{ filePath: string } | { canceled: true }> {
+    if (typeof window !== 'undefined' && window.bouticaDesktop) {
+      const res = await window.bouticaDesktop.saveReceiptPdf(data);
+      if (res.success && res.filePath) return { filePath: res.filePath };
+      if (res.canceled) return { canceled: true };
+      throw new ApiError(0, res.error || 'Échec de l’enregistrement du reçu PDF.');
+    }
+    // Web fallback: trigger browser print dialog
+    window.print();
+    return { filePath: 'impression-navigateur' };
+  }
+
+  async uploadProductImage(fileData: { name: string; type: string; base64: string }): Promise<{
+    url?: string;
+    key?: string;
+    cloudUnsupported?: boolean;
+    error?: string;
+  }> {
+    if (typeof window !== 'undefined' && window.bouticaDesktop) {
+      return window.bouticaDesktop.uploadProductImage(fileData);
+    }
+    // Web fallback: try direct endpoint via proxy
+    try {
+      const res = await fetch(`${this.getWebBaseUrl()}/api/v1/media/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: fileData.name, type: fileData.type }),
+      });
+      if (res.status === 404) {
+        return {
+          cloudUnsupported: true,
+          error: "Le stockage R2 (/api/v1/media) n'est pas activé dans le module principal de Boutica Cloud (StorageModule manquant dans AppModule).",
+        };
+      }
+      const d = await res.json().catch(() => null);
+      if (!res.ok) return { error: d?.message || 'Échec de l’envoi de l’image' };
+      return { url: d?.url, key: d?.key };
+    } catch (err: any) {
+      return { error: err?.message || 'Erreur réseau' };
+    }
   }
 }
 

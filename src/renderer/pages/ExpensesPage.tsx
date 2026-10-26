@@ -47,6 +47,22 @@ export const ExpensesPage: React.FC = () => {
     loadExpenses();
   }, []);
 
+  // Écoute des raccourcis globaux (Actualiser Ctrl+R et Créer Ctrl+N)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadExpenses();
+    };
+    const handleCreateNew = () => {
+      setIsCreateOpen(true);
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    window.addEventListener('boutica:create-new', handleCreateNew);
+    return () => {
+      window.removeEventListener('boutica:refresh', handleRefresh);
+      window.removeEventListener('boutica:create-new', handleCreateNew);
+    };
+  }, []);
+
   const totalExpenses = expenses.reduce(
     (sum, exp) => sum + parseFloat(exp.amount || '0'),
     0
@@ -97,16 +113,20 @@ export const ExpensesPage: React.FC = () => {
             onClick={loadExpenses}
             isLoading={isLoading}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            title="Actualiser la liste (Ctrl+R)"
           >
-            Actualiser
+            <span>Actualiser</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-black/5 text-[#706C70]">Ctrl+R</kbd>
           </Button>
           <Button
             variant="primary"
             size="sm"
             onClick={() => setIsCreateOpen(true)}
             leftIcon={<Plus className="w-4 h-4" />}
+            title="Enregistrer une dépense (Ctrl+N)"
           >
-            Nouvelle Dépense
+            <span>Nouvelle Dépense</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-white/20 text-white font-bold">Ctrl+N</kbd>
           </Button>
         </div>
       </div>

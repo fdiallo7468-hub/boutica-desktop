@@ -59,6 +59,25 @@ export const PurchasesPage: React.FC = () => {
     loadData();
   }, []);
 
+  // Écoute des raccourcis globaux (Actualiser Ctrl+R et Créer Ctrl+N)
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadData();
+    };
+    const handleCreateNew = () => {
+      setIsReceiveModalOpen(true);
+      if (purchaseItems.length === 0 && variants.length > 0) {
+        handleAddItemToReception();
+      }
+    };
+    window.addEventListener('boutica:refresh', handleRefresh);
+    window.addEventListener('boutica:create-new', handleCreateNew);
+    return () => {
+      window.removeEventListener('boutica:refresh', handleRefresh);
+      window.removeEventListener('boutica:create-new', handleCreateNew);
+    };
+  }, [purchaseItems.length, variants.length]);
+
   const handleAddItemToReception = () => {
     if (variants.length === 0) return;
     setPurchaseItems((prev) => [
@@ -151,8 +170,10 @@ export const PurchasesPage: React.FC = () => {
             onClick={loadData}
             isLoading={isLoading}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            title="Actualiser les achats (Ctrl+R)"
           >
-            Actualiser
+            <span>Actualiser</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-black/5 text-[#706C70]">Ctrl+R</kbd>
           </Button>
           <Button
             variant="primary"
@@ -164,8 +185,10 @@ export const PurchasesPage: React.FC = () => {
               }
             }}
             leftIcon={<Plus className="w-4 h-4" />}
+            title="Réceptionner des marchandises (Ctrl+N)"
           >
-            Réceptionner Stock
+            <span>Réceptionner Stock</span>
+            <kbd className="hidden md:inline font-mono text-[9px] px-1 py-0.2 rounded bg-white/20 text-white font-bold">Ctrl+N</kbd>
           </Button>
         </div>
       </div>

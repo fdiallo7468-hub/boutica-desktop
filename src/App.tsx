@@ -21,11 +21,16 @@ import { ExpensesPage } from './renderer/pages/ExpensesPage.tsx';
 import { ReportsPage } from './renderer/pages/ReportsPage.tsx';
 import { SettingsPage } from './renderer/pages/SettingsPage.tsx';
 import { CommandPalette } from './renderer/components/ui/CommandPalette.tsx';
+import { ShortcutsHelpModal } from './renderer/components/ui/ShortcutsHelpModal.tsx';
 import { ReceiptModal } from './renderer/components/ui/ReceiptModal.tsx';
+import { useKeyboardShortcuts } from './renderer/hooks/useKeyboardShortcuts.ts';
 
 export default function App() {
   const { currentPage, session, setSession, entryView, setEntryView } = useUIStore();
   const [startupError, setStartupError] = useState<string | null>(null);
+
+  // Initialise l'écoute globale des 15 raccourcis clavier
+  useKeyboardShortcuts();
 
   const checkSession = useCallback(async () => {
     setStartupError(null);
@@ -147,6 +152,7 @@ export default function App() {
     <DesktopShell>
       {renderActivePage()}
       <CommandPalette />
+      <ShortcutsHelpModal />
       <ReceiptModal />
       <Toaster
         position="top-right"
