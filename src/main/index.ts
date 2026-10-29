@@ -13,6 +13,8 @@ import type { IpcMainInvokeEvent } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import http from 'node:http';
+import crypto from 'node:crypto';
 
 const DEFAULT_API_BASE = 'https://boutica-cloud.onrender.com';
 const REQUEST_TIMEOUT_MS = 60_000; // Render (offre gratuite) peut mettre ~50 s à se réveiller
@@ -21,6 +23,7 @@ const REPORT_TYPES = ['sales/excel', 'inventory/excel', 'sales/pdf', 'inventory/
 let mainWindow: BrowserWindow | null = null;
 let sessionToken: string | null = null; // jamais transmis au renderer
 let apiBaseUrl = DEFAULT_API_BASE;
+let activeOAuthServer: http.Server | null = null;
 
 const devServerUrl = process.env.BOUTICA_DEV_SERVER_URL || null;
 const rendererDir = path.join(__dirname, '..', 'dist', 'renderer');
@@ -649,31 +652,194 @@ function registerIpc() {
     if (provider !== 'google' && provider !== 'apple') {
       return { ok: false, error: 'Fournisseur OAuth non pris en charge.' };
     }
-    // Probe social sign in endpoint
-    const r = await cloudFetch('/api/auth/sign-in/social', {
-      method: 'POST',
-      body: JSON.stringify({
-        provider,
-        callbackURL: `${apiBaseUrl}/api/v1/auth/callback`,
-      }),
-      token: null,
+
+    if (activeOAuthServer) {
+      try {
+        activeOAuthServer.close();
+      } catch {}
+      activeOAuthServer = null;
+    }
+
+    return new Promise(async (resolve) => {
+      let isSettled = false;
+      const desktopNonce = crypto.randomBytes(32).toString('hex');
+
+      const server = http.createServer(async (req, res) => {
+        try {
+          const reqUrl = new URL(req.url || '/', 'http://127.0.0.1');
+          if (reqUrl.pathname === '/callback') {
+            const code = reqUrl.searchParams.get('code');
+            const state = reqUrl.searchParams.get('state');
+
+            // Vérification de sécurité anti-CSRF : le nonce d’état doit correspondre strictement
+            if (!state || state !== desktopNonce || !code) {
+              res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+              res.end(`
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head><meta charset="utf-8"><title>Boutica — Erreur</title></head>
+                <body style="font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; text-align: center;">
+                  <h1 style="color: #ef4444;">Erreur de validation</h1>
+                  <p style="color: #94a3b8;">Paramètre d'état invalide ou manquant. Veuillez réessayer.</p>
+                </body>
+                </html>
+              `);
+              finish(false, 'Validation de sécurité échouée (state mismatch)');
+              return;
+            }
+
+            // Réponse de confirmation affichée dans le navigateur externe
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(`
+              <!DOCTYPE html>
+              <html lang="fr">
+              <head>
+                <meta charset="utf-8">
+                <title>Boutica — Connexion confirmée</title>
+                <style>
+                  body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    background-color: #0f172a;
+                    color: #f8fafc;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                  }
+                  .card {
+                    background: #1e293b;
+                    border: 1px solid #334155;
+                    border-radius: 12px;
+                    padding: 32px;
+                    text-align: center;
+                    max-width: 400px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                  }
+                  h1 { color: #10b981; font-size: 20px; margin-bottom: 8px; }
+                  p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin: 0; }
+                </style>
+              </head>
+              <body>
+                <div class="card">
+                  <h1>✓ Connexion confirmée</h1>
+                  <p>Votre compte a été connecté avec succès. Vous pouvez fermer cet onglet et continuer dans Boutica Desktop.</p>
+                </div>
+              </body>
+              </html>
+            `);
+
+            // Échange sécurisé du code éphémère contre le jeton de session (appel HTTPS direct vers Cloud)
+            const exchangeRes = await cloudFetch('/api/v1/auth/desktop-exchange', {
+              method: 'POST',
+              body: JSON.stringify({ code }),
+              token: null,
+            });
+
+            const exchangeData = parseJson(exchangeRes.bytes) as any;
+            if (!exchangeRes.ok || !exchangeData?.sessionToken) {
+              finish(false, toBridgeError(exchangeRes, exchangeData) || 'Échec de l’échange de session.');
+              return;
+            }
+
+            const token = exchangeData.sessionToken;
+            setToken(token);
+
+            // Valider la session complète auprès du serveur Cloud
+            const s = await cloudFetch('/api/auth/get-session', { method: 'GET', token });
+            const sessionData = parseJson(s.bytes);
+            const session = s.ok ? validateSession(sessionData) : null;
+
+            if (!session) {
+              finish(false, 'Connexion refusée : la session n’a pas pu être validée.');
+              return;
+            }
+
+            // Remettre la fenêtre de l'application Desktop au premier plan
+            if (mainWindow) {
+              if (mainWindow.isMinimized()) mainWindow.restore();
+              mainWindow.focus();
+            }
+
+            finish(true, null, session);
+            return;
+          }
+
+          res.writeHead(404);
+          res.end();
+        } catch (err: any) {
+          finish(false, err?.message || 'Erreur interne de traitement OAuth.');
+        }
+      });
+
+      activeOAuthServer = server;
+
+      // Délai d'attente maximal : 3 minutes
+      const timeoutId = setTimeout(() => {
+        finish(false, 'Délai d’attente d’authentification dépassé (3 minutes). Veuillez réessayer.');
+      }, 180_000);
+
+      function finish(ok: boolean, error?: string | null, session?: any, notConfigured?: boolean) {
+        if (isSettled) return;
+        isSettled = true;
+        clearTimeout(timeoutId);
+        try {
+          server.close();
+        } catch {}
+        if (activeOAuthServer === server) {
+          activeOAuthServer = null;
+        }
+
+        if (ok) {
+          resolve({ ok: true, session });
+        } else {
+          resolve({ ok: false, notConfigured: Boolean(notConfigured), error: error || 'Erreur lors de la connexion.' });
+        }
+      }
+
+      server.listen(0, '127.0.0.1', async () => {
+        const addr = server.address();
+        if (!addr || typeof addr === 'string') {
+          finish(false, 'Impossible d’initialiser le serveur de retour local.');
+          return;
+        }
+
+        const port = addr.port;
+        const callbackUrl = `${apiBaseUrl}/api/v1/auth/callback?desktopPort=${port}&desktopNonce=${desktopNonce}`;
+
+        // Appel à Better Auth pour démarrer le flux OAuth social
+        const r = await cloudFetch('/api/auth/sign-in/social', {
+          method: 'POST',
+          body: JSON.stringify({
+            provider,
+            callbackURL: callbackUrl,
+          }),
+          token: null,
+        });
+
+        const data = parseJson(r.bytes) as any;
+        if (r.status === 404 || (data?.message && /provider not found/i.test(String(data.message)))) {
+          finish(
+            false,
+            `La connexion avec ${provider === 'google' ? 'Google' : 'Apple'} n'est pas encore configurée sur le serveur Boutica Cloud. Le propriétaire du projet doit configurer ${provider === 'google' ? 'GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET' : 'APPLE_CLIENT_ID et APPLE_CLIENT_SECRET'} dans les variables d'environnement de Boutica Cloud sur Render.`,
+            null,
+            true,
+          );
+          return;
+        }
+
+        if (!r.ok || !data?.url) {
+          finish(false, toBridgeError(r, data) || 'Impossible d’initialiser la connexion avec le fournisseur.');
+          return;
+        }
+
+        await shell.openExternal(data.url);
+      });
+
+      server.on('error', (err) => {
+        finish(false, `Erreur du serveur local d'authentification: ${err.message}`);
+      });
     });
-    const data = parseJson(r.bytes) as any;
-    if (r.status === 404 || (data?.message && /provider not found/i.test(String(data.message)))) {
-      return {
-        ok: false,
-        notConfigured: true,
-        error: `La connexion avec ${provider === 'google' ? 'Google' : 'Apple'} n'est pas encore configurée sur le serveur Boutica Cloud. Le propriétaire du projet doit configurer ${provider === 'google' ? 'GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET' : 'APPLE_CLIENT_ID et APPLE_CLIENT_SECRET'} dans les variables d'environnement de Boutica Cloud sur Render.`,
-      };
-    }
-    if (!r.ok) {
-      return { ok: false, error: toBridgeError(r, data) };
-    }
-    if (data?.url && typeof data.url === 'string') {
-      await shell.openExternal(data.url);
-      return { ok: true, url: data.url };
-    }
-    return { ok: false, error: 'Réponse inattendue du fournisseur d’authentification.' };
   });
 
   ipcMain.handle('boutica:auth-get-session', async (e) => {
