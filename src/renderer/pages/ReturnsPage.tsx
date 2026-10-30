@@ -296,7 +296,7 @@ export const ReturnsPage: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-[#2B282C] block mb-1">
                 Condition

@@ -234,16 +234,16 @@ export const CommandPalette: React.FC = () => {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/40 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-14 md:pt-20 px-3 sm:px-4 bg-black/40 backdrop-blur-xs"
     >
       <div
         className="fixed inset-0"
         onClick={() => setCommandPaletteOpen(false)}
         aria-hidden="true"
       />
-      <div className="relative w-full max-w-xl bg-white rounded-[18px] border border-[#E5E2E3] shadow-[0_8px_28px_rgba(43,40,44,0.12)] overflow-hidden z-10 flex flex-col">
+      <div className="relative w-full max-w-xl max-h-[85vh] bg-white rounded-[18px] border border-[#E5E2E3] shadow-[0_8px_28px_rgba(43,40,44,0.12)] overflow-hidden z-10 flex flex-col">
         {/* Search header */}
-        <div className="flex items-center px-4 py-3.5 border-b border-[#E5E2E3] gap-3">
+        <div className="flex items-center px-4 py-3 sm:py-3.5 border-b border-[#E5E2E3] gap-3">
           <Search className="w-5 h-5 text-[#9A050E] shrink-0" />
           <input
             autoFocus
@@ -252,7 +252,7 @@ export const CommandPalette: React.FC = () => {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Rechercher une action, un module (ex: vente, stock, rapport)..."
-            className="w-full text-sm font-medium text-[#2B282C] placeholder:text-[#9E9B9D] focus:outline-none"
+            className="w-full text-xs sm:text-sm font-medium text-[#2B282C] placeholder:text-[#9E9B9D] focus:outline-none"
           />
           <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-[#F7F6F6] text-[#706C70] border border-[#E5E2E3]">
             ESC
@@ -260,7 +260,7 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Command list */}
-        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-gray-50">
+        <div className="max-h-60 sm:max-h-80 overflow-y-auto p-2 divide-y divide-gray-50">
           {filteredCommands.length === 0 ? (
             <div className="py-8 text-center text-xs text-[#706C70]">
               Aucune commande trouvée pour « {query} »
@@ -273,32 +273,32 @@ export const CommandPalette: React.FC = () => {
                   key={cmd.id}
                   onClick={() => handleExecute(cmd)}
                   onMouseEnter={() => setSelectedIndex(index)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-[12px] cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-[12px] cursor-pointer transition-colors ${
                     isSelected ? 'bg-[#FCEAEC] text-[#9A050E]' : 'hover:bg-[#F7F6F6] text-[#2B282C]'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
                     <div
-                      className={`p-2 rounded-[10px] ${
+                      className={`p-1.5 sm:p-2 rounded-[10px] ${
                         isSelected ? 'bg-white shadow-xs' : 'bg-[#F7F6F6]'
                       }`}
                     >
                       {cmd.icon}
                     </div>
                     <div>
-                      <div className="text-sm font-semibold flex items-center gap-2">
+                      <div className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                         <span>{cmd.title}</span>
                         {cmd.shortcut && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white text-[#9A050E] border border-[#AA3035]/20 font-bold">
+                          <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 rounded bg-white text-[#9A050E] border border-[#AA3035]/20 font-bold">
                             {cmd.shortcut}
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-[#706C70]">{cmd.description}</div>
+                      <div className="text-[11px] sm:text-xs text-[#706C70] line-clamp-1">{cmd.description}</div>
                     </div>
                   </div>
                   <ArrowRight
-                    className={`w-4 h-4 transition-transform ${
+                    className={`w-4 h-4 transition-transform shrink-0 ${
                       isSelected ? 'translate-x-1 text-[#9A050E]' : 'opacity-0'
                     }`}
                   />
@@ -309,7 +309,7 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="px-4 py-2 border-t border-[#E5E2E3] bg-[#FDFDFD] text-[11px] text-[#706C70] flex items-center justify-between">
+        <div className="px-4 py-2 border-t border-[#E5E2E3] bg-[#FDFDFD] text-[10px] sm:text-[11px] text-[#706C70] flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3">
             <span>
               <kbd className="px-1 py-0.5 rounded bg-[#F7F6F6] border border-[#E5E2E3]">↑</kbd> <kbd className="px-1 py-0.5 rounded bg-[#F7F6F6] border border-[#E5E2E3]">↓</kbd> Naviguer
@@ -318,7 +318,7 @@ export const CommandPalette: React.FC = () => {
               <kbd className="px-1 py-0.5 rounded bg-[#F7F6F6] border border-[#E5E2E3]">Entrée</kbd> Ouvrir
             </span>
           </div>
-          <span className="text-[#9A050E] font-medium">Boutica Command Center</span>
+          <span className="text-[#9A050E] font-medium hidden sm:inline">Boutica Command Center</span>
         </div>
       </div>
     </div>

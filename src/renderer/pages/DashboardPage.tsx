@@ -355,9 +355,9 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Period Selector Tabs */}
-          <div className="flex items-center bg-[#F7F6F6] p-1 rounded-xl border border-[#E5E2E3] text-xs">
+          <div className="flex items-center bg-[#F7F6F6] p-0.5 sm:p-1 rounded-xl border border-[#E5E2E3] text-[11px] sm:text-xs overflow-x-auto">
             {(
               [
                 { key: 'today', label: "Aujourd'hui" },
@@ -370,7 +370,7 @@ export const DashboardPage: React.FC = () => {
                 key={p.key}
                 type="button"
                 onClick={() => setPeriod(p.key)}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap ${
                   period === p.key
                     ? 'bg-white text-[#9A050E] shadow-xs'
                     : 'text-[#706C70] hover:text-[#2B282C]'
@@ -404,7 +404,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* 2. Commercial KPI Cards Grid (8 Cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: CA Période */}
         <Card padding="md" className="relative overflow-hidden">
           <div className="flex items-center justify-between text-xs text-[#706C70] mb-2">
@@ -589,7 +589,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* 3. Middle Section: Revenue Chart & Top Selling Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Interactive Revenue Chart (2 cols) */}
         <Card className="lg:col-span-2">
           <div className="flex items-center justify-between pb-3 border-b border-[#E5E2E3] mb-4">
@@ -657,7 +657,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* 4. Lower Section: Stock Health / Alerts & Recent Activity Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Stock Alerts & Inventory Health */}
         <Card>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E5E2E3]">
@@ -823,9 +823,9 @@ export const DashboardPage: React.FC = () => {
 
       {/* 5. Certified Cloud Exports Bar */}
       <Card padding="sm" className="bg-[#F7F6F6] border-dashed">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-1 sm:px-2">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-[#16804A]" />
+            <FileSpreadsheet className="w-4 h-4 text-[#16804A] shrink-0" />
             <span className="text-xs font-semibold text-[#2B282C]">
               Exports officiels certifiés Boutica Cloud :
             </span>

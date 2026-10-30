@@ -62,10 +62,17 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Auto-collapse sidebar if screen is narrow
-    if (window.innerWidth < 1024) {
-      if (!isSidebarCollapsed) toggleSidebar();
-    }
+    // Auto-collapse sidebar if screen is narrow (on mount & resize)
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        if (!useUIStore.getState().isSidebarCollapsed) {
+          useUIStore.getState().toggleSidebar();
+        }
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
 
     // Initial backend health check
     apiClient
@@ -76,6 +83,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('resize', handleResize);
     };
   }, [setOnline, setBackendHealthy]);
 
@@ -127,22 +135,22 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
           <span className="text-xs font-bold text-[#2B282C] tracking-tight">
             Boutica Desktop
           </span>
-          <span className="text-[10px] text-[#706C70] hidden sm:inline">
+          <span className="text-[10px] text-[#706C70] hidden xl:inline">
             — Gestion Commerciale (Boutica Construction)
           </span>
         </div>
 
         {/* Center: Command Palette & Shortcuts Trigger */}
-        <div className="no-drag flex items-center gap-2">
+        <div className="no-drag flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => setCommandPaletteOpen(true)}
             aria-label="Ouvrir la palette de commandes (Ctrl+K)"
-            className="flex items-center gap-2 px-3 py-1 rounded-[10px] bg-[#F7F6F6] hover:bg-[#EAE8E9] border border-[#E5E2E3] text-xs text-[#706C70] transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 rounded-[10px] bg-[#F7F6F6] hover:bg-[#EAE8E9] border border-[#E5E2E3] text-xs text-[#706C70] transition-colors"
           >
             <Search className="w-3.5 h-3.5 text-[#9A050E]" />
-            <span className="hidden md:inline">Rechercher ou actionner...</span>
-            <kbd className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-white border border-[#E5E2E3] text-[#2B282C]">
+            <span className="hidden sm:inline">Rechercher ou actionner...</span>
+            <kbd className="font-mono text-[10px] px-1 sm:px-1.5 py-0.2 rounded bg-white border border-[#E5E2E3] text-[#2B282C]">
               Ctrl+K
             </kbd>
           </button>
@@ -152,11 +160,11 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
             onClick={() => setShortcutsModalOpen(true)}
             aria-label="Guide des raccourcis clavier (F1)"
             title="Guide des 15 raccourcis clavier (F1)"
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] bg-[#F7F6F6] hover:bg-[#EAE8E9] border border-[#E5E2E3] text-xs text-[#706C70] transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-[10px] bg-[#F7F6F6] hover:bg-[#EAE8E9] border border-[#E5E2E3] text-xs text-[#706C70] transition-colors"
           >
             <Keyboard className="w-3.5 h-3.5 text-[#706C70]" />
-            <span className="hidden xl:inline">Raccourcis</span>
-            <kbd className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-white border border-[#E5E2E3] text-[#9A050E] font-bold">
+            <span className="hidden lg:inline">Raccourcis</span>
+            <kbd className="font-mono text-[10px] px-1 sm:px-1.5 py-0.2 rounded bg-white border border-[#E5E2E3] text-[#9A050E] font-bold">
               F1
             </kbd>
           </button>
@@ -180,12 +188,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
             {isOnline && isBackendHealthy !== false ? (
               <>
                 <Wifi className="w-3 h-3" />
-                <span className="hidden lg:inline">En ligne</span>
+                <span className="hidden md:inline">En ligne</span>
               </>
             ) : (
               <>
                 <WifiOff className="w-3 h-3" />
-                <span className="hidden lg:inline">Hors-ligne</span>
+                <span className="hidden md:inline">Hors-ligne</span>
               </>
             )}
           </div>
@@ -253,11 +261,11 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
         {/* Navigation Sidebar */}
         <aside
           className={`bg-white border-r border-[#E5E2E3] flex flex-col justify-between shrink-0 transition-all duration-200 z-10 ${
-            isSidebarCollapsed ? 'w-18' : 'w-64'
+            isSidebarCollapsed ? 'w-16 sm:w-18' : 'w-56 sm:w-64'
           }`}
         >
           {/* Top Brand & Actions */}
-          <div className="flex flex-col p-3 space-y-3">
+          <div className="flex flex-col p-2.5 sm:p-3 space-y-3">
             {/* Logo */}
             <div className="flex items-center justify-between px-1 py-1">
               {isSidebarCollapsed ? (
@@ -337,7 +345,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
           </div>
 
           {/* Bottom: Current User Account & Sign Out */}
-          <div className="p-3 border-t border-[#E5E2E3] bg-[#FDFDFD]">
+          <div className="p-2.5 sm:p-3 border-t border-[#E5E2E3] bg-[#FDFDFD]">
             <div className={`flex items-center gap-2.5 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
               <div className="w-8 h-8 rounded-full bg-[#FCEAEC] text-[#9A050E] flex items-center justify-center font-bold text-xs shrink-0">
                 {session?.user.name ? session.user.name.slice(0, 2).toUpperCase() : 'BO'}
@@ -368,7 +376,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({ children }) => {
         </aside>
 
         {/* Dynamic Content Viewport */}
-        <main className="flex-1 overflow-y-auto bg-[#FDFDFD] p-6 focus:outline-none">
+        <main className="flex-1 min-w-0 overflow-y-auto bg-[#FDFDFD] p-3 sm:p-4 md:p-6 focus:outline-none">
           {children}
         </main>
       </div>

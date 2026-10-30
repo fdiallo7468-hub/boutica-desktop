@@ -246,14 +246,14 @@ export const PurchasesPage: React.FC = () => {
         description="Les articles saisis seront immédiatement crédités au stock commercial."
         maxWidth="lg"
         footer={
-          <div className="flex items-center justify-between w-full">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
             <div className="text-xs font-bold text-[#2B282C]">
               Total Facture Achat :{' '}
               <span className="text-[#16804A] text-sm tabular-nums">
                 {formatMoney(totalReceptionCost)}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => setIsReceiveModalOpen(false)}>
                 Annuler
               </Button>
@@ -302,13 +302,13 @@ export const PurchasesPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {purchaseItems.map((item, index) => (
                 <div
                   key={index}
-                  className="p-3 rounded-xl border border-[#E5E2E3] bg-[#FDFDFD] flex items-center gap-3"
+                  className="p-3 rounded-xl border border-[#E5E2E3] bg-[#FDFDFD] flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3"
                 >
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <label className="text-[10px] text-[#706C70] font-semibold block mb-0.5">
                       Variante
                     </label>
@@ -321,7 +321,7 @@ export const PurchasesPage: React.FC = () => {
                           handleUpdateItem(index, 'unitPrice', parseFloat(selected.purchasePrice) || 0);
                         }
                       }}
-                      className="w-full h-8 text-xs bg-white border border-[#E5E2E3] rounded-[8px] px-2"
+                      className="w-full h-8 text-xs bg-white border border-[#E5E2E3] rounded-[8px] px-2 truncate"
                     >
                       {variants.map((v) => (
                         <option key={v.id} value={v.id}>
@@ -331,44 +331,47 @@ export const PurchasesPage: React.FC = () => {
                     </select>
                   </div>
 
-                  <div className="w-24">
-                    <label className="text-[10px] text-[#706C70] font-semibold block mb-0.5">
-                      Quantité
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleUpdateItem(index, 'quantity', parseInt(e.target.value) || 1)
-                      }
-                      className="w-full h-8 text-xs px-2 border border-[#E5E2E3] rounded-[8px] text-center font-bold"
-                    />
-                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-24 sm:w-20">
+                      <label className="text-[10px] text-[#706C70] font-semibold block mb-0.5">
+                        Quantité
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleUpdateItem(index, 'quantity', parseInt(e.target.value) || 1)
+                        }
+                        className="w-full h-8 text-xs px-2 border border-[#E5E2E3] rounded-[8px] text-center font-bold"
+                      />
+                    </div>
 
-                  <div className="w-32">
-                    <label className="text-[10px] text-[#706C70] font-semibold block mb-0.5">
-                      Prix Achat unitaire (XOF)
-                    </label>
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={item.unitPrice}
-                      onChange={(e) =>
-                        handleUpdateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)
-                      }
-                      className="w-full h-8 text-xs px-2 border border-[#E5E2E3] rounded-[8px] text-right font-bold"
-                    />
-                  </div>
+                    <div className="flex-1 sm:w-32">
+                      <label className="text-[10px] text-[#706C70] font-semibold block mb-0.5">
+                        Prix Achat unitaire
+                      </label>
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={item.unitPrice}
+                        onChange={(e) =>
+                          handleUpdateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)
+                        }
+                        className="w-full h-8 text-xs px-2 border border-[#E5E2E3] rounded-[8px] text-right font-bold"
+                      />
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(index)}
-                    className="p-1 text-[#706C70] hover:text-[#C62828] mt-3"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(index)}
+                      className="p-1.5 text-[#706C70] hover:text-[#C62828] mt-4 self-end sm:self-center"
+                      title="Supprimer la ligne"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

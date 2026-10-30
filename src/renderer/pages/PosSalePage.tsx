@@ -188,7 +188,7 @@ export const PosSalePage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-130px)]">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0 lg:h-[calc(100vh-120px)]">
       {/* Left Column: Search & Catalog Grid */}
       <div className="flex-1 flex flex-col min-w-0 space-y-4">
         {/* Header & Search */}
@@ -283,9 +283,9 @@ export const PosSalePage: React.FC = () => {
       </div>
 
       {/* Right Column: Active POS Shopping Cart & Summary */}
-      <div className="w-full lg:w-96 flex flex-col bg-white rounded-[18px] border border-[#E5E2E3] shadow-[0_2px_10px_rgba(43,40,44,0.05)] overflow-hidden shrink-0">
+      <div className="w-full lg:w-80 xl:w-96 flex flex-col bg-white rounded-[18px] border border-[#E5E2E3] shadow-[0_2px_10px_rgba(43,40,44,0.05)] overflow-hidden shrink-0">
         {/* Cart Header */}
-        <div className="p-4 border-b border-[#E5E2E3] bg-[#FDFDFD] flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 border-b border-[#E5E2E3] bg-[#FDFDFD] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-[#9A050E]" />
             <h2 className="text-sm font-bold text-[#2B282C]">Panier en cours</h2>
@@ -326,9 +326,9 @@ export const PosSalePage: React.FC = () => {
         </div>
 
         {/* Cart Items List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+        <div className="max-h-60 lg:max-h-none flex-1 overflow-y-auto p-3 space-y-2.5">
           {cart.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#706C70]">
+            <div className="py-8 lg:h-full flex flex-col items-center justify-center text-center p-6 text-[#706C70]">
               <ShoppingCart className="w-8 h-8 text-[#E5E2E3] mb-2" />
               <p className="text-xs font-semibold text-[#2B282C]">Panier vide</p>
               <p className="text-[11px]">Cliquez sur un article à gauche pour l'ajouter.</p>

@@ -405,8 +405,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
-    minWidth: 1024,
-    minHeight: 680,
+    minWidth: 800,
+    minHeight: 560,
     title: 'Boutica Desktop — Gestion Commerciale',
     backgroundColor: '#FDFDFD',
     autoHideMenuBar: true,

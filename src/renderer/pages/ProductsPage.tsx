@@ -502,7 +502,7 @@ export const ProductsPage: React.FC = () => {
             onChange={(e) => setNewProductName(e.target.value)}
             required
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Catégorie"
               placeholder="ex: Gros Œuvre, Quincaillerie..."
@@ -528,7 +528,7 @@ export const ProductsPage: React.FC = () => {
             <label className="block text-xs font-semibold text-[#2B282C]">
               Photo du produit (Optionnel)
             </label>
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
               <div className="w-20 h-20 rounded-xl border border-[#E5E2E3] bg-[#F7F6F6] flex items-center justify-center overflow-hidden shrink-0">
                 {imagePreviewUrl || newProductImageUrl ? (
                   <img

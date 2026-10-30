@@ -84,18 +84,18 @@ export const ShortcutsHelpModal: React.FC = () => {
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-2xl bg-white rounded-[20px] border border-[#E5E2E3] shadow-[0_12px_36px_rgba(43,40,44,0.18)] overflow-hidden z-10 flex flex-col max-h-[85vh]">
+      <div className="relative w-full max-w-2xl bg-white rounded-[20px] border border-[#E5E2E3] shadow-[0_12px_36px_rgba(43,40,44,0.18)] overflow-hidden z-10 flex flex-col max-h-[90vh] sm:max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#E5E2E3] bg-[#FCFBFB]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[12px] bg-[#FCEAEC] text-[#9A050E] flex items-center justify-center shadow-xs">
-              <Keyboard className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4.5 border-b border-[#E5E2E3] bg-[#FCFBFB]">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-[12px] bg-[#FCEAEC] text-[#9A050E] flex items-center justify-center shadow-xs shrink-0">
+              <Keyboard className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h2 id="shortcuts-dialog-title" className="text-base font-bold text-[#2B282C]">
+              <h2 id="shortcuts-dialog-title" className="text-sm sm:text-base font-bold text-[#2B282C]">
                 Raccourcis Clavier Boutica
               </h2>
-              <p className="text-xs text-[#706C70]">
+              <p className="text-[11px] sm:text-xs text-[#706C70] line-clamp-1">
                 {BOUTICA_SHORTCUTS.length} raccourcis optimisés pour les caisses et le pilotage quotidien
               </p>
             </div>
@@ -112,7 +112,7 @@ export const ShortcutsHelpModal: React.FC = () => {
         </div>
 
         {/* Search & Categories Bar */}
-        <div className="p-4 border-b border-[#E5E2E3] bg-[#FFFFFF] flex flex-col sm:flex-row gap-3">
+        <div className="p-3 sm:p-4 border-b border-[#E5E2E3] bg-[#FFFFFF] flex flex-col sm:flex-row gap-2.5 sm:gap-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-[#706C70] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -121,11 +121,11 @@ export const ShortcutsHelpModal: React.FC = () => {
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               placeholder="Rechercher un raccourci (ex: vente, stock, Ctrl+K)..."
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#E5E2E3] bg-[#FDFDFD] focus:bg-white focus:outline-none focus:border-[#9A050E] text-[#2B282C]"
+              className="w-full pl-9 pr-3 py-1.5 sm:py-2 text-xs rounded-xl border border-[#E5E2E3] bg-[#FDFDFD] focus:bg-white focus:outline-none focus:border-[#9A050E] text-[#2B282C]"
             />
           </div>
 
-          <div className="flex items-center gap-1 overflow-x-auto text-xs shrink-0">
+          <div className="flex items-center gap-1 overflow-x-auto text-xs shrink-0 pb-1 sm:pb-0">
             {[
               { id: 'all', label: 'Tous' },
               { id: 'pos', label: 'Caisse & POS' },
@@ -137,7 +137,7 @@ export const ShortcutsHelpModal: React.FC = () => {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id as any)}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
                   selectedCategory === cat.id
                     ? 'bg-[#9A050E] text-white shadow-xs'
                     : 'text-[#706C70] hover:text-[#2B282C] hover:bg-[#F7F6F6]'
@@ -203,7 +203,7 @@ export const ShortcutsHelpModal: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-[#E5E2E3] bg-[#FCFBFB] flex items-center justify-between text-xs text-[#706C70]">
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-t border-[#E5E2E3] bg-[#FCFBFB] flex items-center justify-between flex-wrap gap-2 text-xs text-[#706C70]">
           <div className="flex items-center gap-2">
             <span>Appuyez sur</span>
             <kbd className="font-mono font-bold px-1.5 py-0.5 rounded bg-[#F2EFF0] text-[#2B282C] border border-[#E5E2E3]">
@@ -212,7 +212,7 @@ export const ShortcutsHelpModal: React.FC = () => {
             <span>pour fermer</span>
           </div>
           <span className="text-[11px] font-medium text-[#9A050E]">
-            Système d'exploitation : {isMac ? 'macOS (Command ⌘)' : 'Windows / Linux (Ctrl)'}
+            Système : {isMac ? 'macOS (⌘)' : 'Windows / Linux (Ctrl)'}
           </span>
         </div>
       </div>

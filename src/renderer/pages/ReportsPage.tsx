@@ -71,11 +71,11 @@ export const ReportsPage: React.FC = () => {
             </ul>
           </div>
 
-          <div className="flex items-center gap-3 pt-3 border-t border-[#E5E2E3]">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-3 border-t border-[#E5E2E3]">
             <Button
               variant="secondary"
               size="md"
-              className="flex-1"
+              className="w-full sm:flex-1"
               isLoading={downloadingType === 'sales/excel'}
               onClick={() => handleDownload('sales/excel', `journal-ventes-${todayStr}.xlsx`)}
               leftIcon={<FileSpreadsheet className="w-4 h-4 text-[#16804A]" />}
@@ -85,7 +85,7 @@ export const ReportsPage: React.FC = () => {
             <Button
               variant="primary"
               size="md"
-              className="flex-1"
+              className="w-full sm:flex-1"
               isLoading={downloadingType === 'sales/pdf'}
               onClick={() => handleDownload('sales/pdf', `rapport-ventes-${todayStr}.pdf`)}
               leftIcon={<FileText className="w-4 h-4" />}
@@ -117,11 +117,11 @@ export const ReportsPage: React.FC = () => {
             </ul>
           </div>
 
-          <div className="flex items-center gap-3 pt-3 border-t border-[#E5E2E3]">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-3 border-t border-[#E5E2E3]">
             <Button
               variant="secondary"
               size="md"
-              className="flex-1"
+              className="w-full sm:flex-1"
               isLoading={downloadingType === 'inventory/excel'}
               onClick={() => handleDownload('inventory/excel', `inventaire-stocks-${todayStr}.xlsx`)}
               leftIcon={<FileSpreadsheet className="w-4 h-4 text-[#16804A]" />}
@@ -131,7 +131,7 @@ export const ReportsPage: React.FC = () => {
             <Button
               variant="primary"
               size="md"
-              className="flex-1"
+              className="w-full sm:flex-1"
               isLoading={downloadingType === 'inventory/pdf'}
               onClick={() => handleDownload('inventory/pdf', `etat-stocks-${todayStr}.pdf`)}
               leftIcon={<FileText className="w-4 h-4" />}
